@@ -1,6 +1,8 @@
 use crate::config::Config;
 use crate::types::{CheckResult, CheckStatus};
 use crate::utils::registry;
+
+#[cfg(target_os = "windows")]
 use windows::Win32::System::Registry::*;
 
 pub fn run_checks(_config: &Config) -> Vec<CheckResult> {
@@ -52,6 +54,7 @@ fn check_dpc_latency() -> CheckResult {
     }
 }
 
+#[cfg(target_os = "windows")]
 fn check_hpet() -> CheckResult {
     let status = registry::read_dword(
         HKEY_LOCAL_MACHINE,
@@ -67,6 +70,17 @@ fn check_hpet() -> CheckResult {
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+fn check_hpet() -> CheckResult {
+    CheckResult {
+        name: "HPET Status".to_string(),
+        category: "Latency".to_string(),
+        status: CheckStatus::Info,
+        detail: "Windows-only check".to_string(),
+    }
+}
+
+#[cfg(target_os = "windows")]
 fn check_tsc_sync() -> CheckResult {
     let status = registry::read_dword(
         HKEY_LOCAL_MACHINE,
@@ -82,6 +96,17 @@ fn check_tsc_sync() -> CheckResult {
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+fn check_tsc_sync() -> CheckResult {
+    CheckResult {
+        name: "TSC Sync Policy".to_string(),
+        category: "Latency".to_string(),
+        status: CheckStatus::Info,
+        detail: "Windows-only check".to_string(),
+    }
+}
+
+#[cfg(target_os = "windows")]
 fn check_dynamic_tick() -> CheckResult {
     let status = registry::read_dword(
         HKEY_LOCAL_MACHINE,
@@ -97,6 +122,17 @@ fn check_dynamic_tick() -> CheckResult {
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+fn check_dynamic_tick() -> CheckResult {
+    CheckResult {
+        name: "Dynamic Tick".to_string(),
+        category: "Latency".to_string(),
+        status: CheckStatus::Info,
+        detail: "Windows-only check".to_string(),
+    }
+}
+
+#[cfg(target_os = "windows")]
 fn check_mmcss_responsiveness() -> CheckResult {
     let value = registry::read_dword(
         HKEY_LOCAL_MACHINE,
@@ -112,6 +148,17 @@ fn check_mmcss_responsiveness() -> CheckResult {
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+fn check_mmcss_responsiveness() -> CheckResult {
+    CheckResult {
+        name: "MMCSS System Responsiveness".to_string(),
+        category: "Latency".to_string(),
+        status: CheckStatus::Info,
+        detail: "Windows-only check".to_string(),
+    }
+}
+
+#[cfg(target_os = "windows")]
 fn check_network_throttling() -> CheckResult {
     let value = registry::read_dword(
         HKEY_LOCAL_MACHINE,
@@ -127,6 +174,17 @@ fn check_network_throttling() -> CheckResult {
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+fn check_network_throttling() -> CheckResult {
+    CheckResult {
+        name: "Network Throttling".to_string(),
+        category: "Latency".to_string(),
+        status: CheckStatus::Info,
+        detail: "Windows-only check".to_string(),
+    }
+}
+
+#[cfg(target_os = "windows")]
 fn check_priority_separation() -> CheckResult {
     let value = registry::read_dword(
         HKEY_LOCAL_MACHINE,
@@ -139,6 +197,16 @@ fn check_priority_separation() -> CheckResult {
         category: "Latency".to_string(),
         status: if value == 38 { CheckStatus::Ok } else { CheckStatus::Info },
         detail: format!("Win32PrioritySeparation: {}", value),
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn check_priority_separation() -> CheckResult {
+    CheckResult {
+        name: "Priority Separation".to_string(),
+        category: "Latency".to_string(),
+        status: CheckStatus::Info,
+        detail: "Windows-only check".to_string(),
     }
 }
 
@@ -178,6 +246,7 @@ fn check_nic_interrupt_affinity() -> CheckResult {
     }
 }
 
+#[cfg(target_os = "windows")]
 fn check_timer_coalescing() -> CheckResult {
     let value = registry::read_dword(
         HKEY_LOCAL_MACHINE,
@@ -190,6 +259,16 @@ fn check_timer_coalescing() -> CheckResult {
         category: "Latency".to_string(),
         status: if value == 0 { CheckStatus::Ok } else { CheckStatus::Warn },
         detail: format!("Timer coalescing disabled: {}", value == 0),
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn check_timer_coalescing() -> CheckResult {
+    CheckResult {
+        name: "Timer Coalescing".to_string(),
+        category: "Latency".to_string(),
+        status: CheckStatus::Info,
+        detail: "Windows-only check".to_string(),
     }
 }
 

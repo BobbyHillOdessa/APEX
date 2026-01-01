@@ -1,9 +1,13 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
+
+#[cfg(target_os = "windows")]
 use windows::Win32::System::Registry::*;
+#[cfg(target_os = "windows")]
 use windows::core::PCWSTR;
-use windows::Win32::Foundation::ERROR_SUCCESS;
+#[cfg(target_os = "windows")]
 use std::ptr;
 
+#[cfg(target_os = "windows")]
 pub fn read_dword(key: HKEY, subkey: &str, value: &str) -> Result<u32> {
     unsafe {
         let mut hkey = HKEY::default();
@@ -17,14 +21,14 @@ pub fn read_dword(key: HKEY, subkey: &str, value: &str) -> Result<u32> {
             &mut hkey,
         );
         
-        if result != ERROR_SUCCESS {
+        if result.is_err() {
             return Err(anyhow::anyhow!("Failed to open registry key: {}", subkey));
         }
 
         let value_wide: Vec<u16> = value.encode_utf16().chain(std::iter::once(0)).collect();
         let mut data: u32 = 0;
         let mut data_size = std::mem::size_of::<u32>() as u32;
-        let mut data_type = REG_DWORD;
+        let mut data_type: u32 = 0;
 
         let result = RegQueryValueExW(
             hkey,
@@ -37,7 +41,7 @@ pub fn read_dword(key: HKEY, subkey: &str, value: &str) -> Result<u32> {
 
         let _ = RegCloseKey(hkey);
 
-        if result == ERROR_SUCCESS {
+        if result.is_ok() {
             Ok(data)
         } else {
             Err(anyhow::anyhow!("Failed to read registry value: {}", value))
@@ -45,6 +49,12 @@ pub fn read_dword(key: HKEY, subkey: &str, value: &str) -> Result<u32> {
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+pub fn read_dword(_key: usize, _subkey: &str, _value: &str) -> Result<u32> {
+    Err(anyhow::anyhow!("Registry operations only supported on Windows"))
+}
+
+#[cfg(target_os = "windows")]
 pub fn write_dword(key: HKEY, subkey: &str, value: &str, data: u32) -> Result<()> {
     unsafe {
         let mut hkey = HKEY::default();
@@ -58,7 +68,7 @@ pub fn write_dword(key: HKEY, subkey: &str, value: &str, data: u32) -> Result<()
             &mut hkey,
         );
         
-        if result != ERROR_SUCCESS {
+        if result.is_err() {
             return Err(anyhow::anyhow!("Failed to open registry key for writing: {}", subkey));
         }
 
@@ -75,7 +85,7 @@ pub fn write_dword(key: HKEY, subkey: &str, value: &str, data: u32) -> Result<()
 
         let _ = RegCloseKey(hkey);
 
-        if result == ERROR_SUCCESS {
+        if result.is_ok() {
             Ok(())
         } else {
             Err(anyhow::anyhow!("Failed to write registry value: {}", value))
@@ -83,6 +93,12 @@ pub fn write_dword(key: HKEY, subkey: &str, value: &str, data: u32) -> Result<()
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+pub fn write_dword(_key: usize, _subkey: &str, _value: &str, _data: u32) -> Result<()> {
+    Err(anyhow::anyhow!("Registry operations only supported on Windows"))
+}
+
+#[cfg(target_os = "windows")]
 pub fn read_string(key: HKEY, subkey: &str, value: &str) -> Result<String> {
     unsafe {
         let mut hkey = HKEY::default();
@@ -96,13 +112,13 @@ pub fn read_string(key: HKEY, subkey: &str, value: &str) -> Result<String> {
             &mut hkey,
         );
         
-        if result != ERROR_SUCCESS {
+        if result.is_err() {
             return Err(anyhow::anyhow!("Failed to open registry key: {}", subkey));
         }
 
         let value_wide: Vec<u16> = value.encode_utf16().chain(std::iter::once(0)).collect();
         let mut data_size: u32 = 0;
-        let mut data_type = REG_SZ;
+        let mut data_type: u32 = 0;
 
         // First call to get size
         let result = RegQueryValueExW(
@@ -114,7 +130,7 @@ pub fn read_string(key: HKEY, subkey: &str, value: &str) -> Result<String> {
             Some(&mut data_size),
         );
 
-        if result != ERROR_SUCCESS {
+        if result.is_err() {
             let _ = RegCloseKey(hkey);
             return Err(anyhow::anyhow!("Failed to query registry value size: {}", value));
         }
@@ -132,11 +148,16 @@ pub fn read_string(key: HKEY, subkey: &str, value: &str) -> Result<String> {
 
         let _ = RegCloseKey(hkey);
 
-        if result == ERROR_SUCCESS {
+        if result.is_ok() {
             let s = String::from_utf16_lossy(&buffer);
             Ok(s.trim_end_matches('\0').to_string())
         } else {
             Err(anyhow::anyhow!("Failed to read registry string value: {}", value))
         }
     }
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn read_string(_key: usize, _subkey: &str, _value: &str) -> Result<String> {
+    Err(anyhow::anyhow!("Registry operations only supported on Windows"))
 }

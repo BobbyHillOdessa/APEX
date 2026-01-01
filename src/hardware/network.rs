@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use sysinfo::{NetworkExt, System, SystemExt, NetworksExt};
+use sysinfo::Networks;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkInfo {
@@ -9,10 +9,9 @@ pub struct NetworkInfo {
 }
 
 pub fn detect() -> Vec<NetworkInfo> {
-    let mut sys = System::new_all();
-    sys.refresh_networks();
+    let networks = Networks::new_with_refreshed_list();
     
-    sys.networks()
+    networks
         .iter()
         .map(|(name, data)| NetworkInfo {
             name: name.clone(),

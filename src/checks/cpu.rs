@@ -1,6 +1,8 @@
 use crate::config::Config;
 use crate::types::{CheckResult, CheckStatus};
 use crate::utils::registry;
+
+#[cfg(target_os = "windows")]
 use windows::Win32::System::Registry::*;
 
 pub fn run_checks(_config: &Config) -> Vec<CheckResult> {
@@ -93,6 +95,7 @@ fn check_throttle_max() -> CheckResult {
     }
 }
 
+#[cfg(target_os = "windows")]
 fn check_vbs() -> CheckResult {
     let status = registry::read_dword(
         HKEY_LOCAL_MACHINE,
@@ -108,6 +111,17 @@ fn check_vbs() -> CheckResult {
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+fn check_vbs() -> CheckResult {
+    CheckResult {
+        name: "Virtualization Based Security".to_string(),
+        category: "CPU".to_string(),
+        status: CheckStatus::Info,
+        detail: "Windows-only check".to_string(),
+    }
+}
+
+#[cfg(target_os = "windows")]
 fn check_hvci() -> CheckResult {
     let status = registry::read_dword(
         HKEY_LOCAL_MACHINE,
@@ -123,6 +137,17 @@ fn check_hvci() -> CheckResult {
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+fn check_hvci() -> CheckResult {
+    CheckResult {
+        name: "Hypervisor-Enforced Code Integrity".to_string(),
+        category: "CPU".to_string(),
+        status: CheckStatus::Info,
+        detail: "Windows-only check".to_string(),
+    }
+}
+
+#[cfg(target_os = "windows")]
 fn check_mitigations() -> CheckResult {
     let status = registry::read_dword(
         HKEY_LOCAL_MACHINE,
@@ -135,6 +160,16 @@ fn check_mitigations() -> CheckResult {
         category: "CPU".to_string(),
         status: if status == 3 { CheckStatus::Ok } else { CheckStatus::Info },
         detail: format!("Mitigations override: {}", status),
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn check_mitigations() -> CheckResult {
+    CheckResult {
+        name: "CPU Mitigations".to_string(),
+        category: "CPU".to_string(),
+        status: CheckStatus::Info,
+        detail: "Windows-only check".to_string(),
     }
 }
 
@@ -291,6 +326,7 @@ fn check_background_throttling() -> CheckResult {
     }
 }
 
+#[cfg(target_os = "windows")]
 fn check_foreground_separation() -> CheckResult {
     let value = registry::read_dword(
         HKEY_LOCAL_MACHINE,
@@ -303,6 +339,16 @@ fn check_foreground_separation() -> CheckResult {
         category: "CPU".to_string(),
         status: CheckStatus::Info,
         detail: format!("Priority separation: {}", value),
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn check_foreground_separation() -> CheckResult {
+    CheckResult {
+        name: "Foreground/Background Separation".to_string(),
+        category: "CPU".to_string(),
+        status: CheckStatus::Info,
+        detail: "Windows-only check".to_string(),
     }
 }
 

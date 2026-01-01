@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use sysinfo::{System, SystemExt};
+use sysinfo::System;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemoryInfo {
@@ -11,8 +11,7 @@ pub struct MemoryInfo {
 }
 
 pub fn detect() -> MemoryInfo {
-    let mut sys = System::new_all();
-    sys.refresh_memory();
+    let sys = System::new_all();
     
     MemoryInfo {
         total: sys.total_memory(),

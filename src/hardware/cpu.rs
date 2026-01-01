@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use sysinfo::{CpuExt, System, SystemExt};
+use sysinfo::System;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CpuInfo {
@@ -12,7 +12,7 @@ pub struct CpuInfo {
 
 pub fn detect() -> CpuInfo {
     let mut sys = System::new_all();
-    sys.refresh_cpu();
+    sys.refresh_cpu_all();
     
     let cpus = sys.cpus();
     let cpu = cpus.first();

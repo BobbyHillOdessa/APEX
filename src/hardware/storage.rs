@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use sysinfo::{DiskExt, System, SystemExt};
+use sysinfo::{Disks};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StorageInfo {
@@ -11,17 +11,16 @@ pub struct StorageInfo {
 }
 
 pub fn detect() -> Vec<StorageInfo> {
-    let mut sys = System::new_all();
-    sys.refresh_disks();
+    let disks = Disks::new_with_refreshed_list();
     
-    sys.disks()
+    disks
         .iter()
         .map(|disk| StorageInfo {
             name: disk.name().to_string_lossy().to_string(),
             mount_point: disk.mount_point().to_string_lossy().to_string(),
             total: disk.total_space(),
             available: disk.available_space(),
-            filesystem: String::from_utf8_lossy(disk.file_system()).to_string(),
+            filesystem: disk.file_system().to_string_lossy().to_string(),
         })
         .collect()
 }

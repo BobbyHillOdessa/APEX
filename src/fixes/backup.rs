@@ -35,17 +35,25 @@ pub fn backup_registry_value(subkey: &str, value: &str, data: u32) -> Result<()>
     Ok(())
 }
 
+#[cfg(target_os = "windows")]
 pub fn rollback_from_file(backup_file: &str) -> Result<()> {
+    use windows::Win32::System::Registry::*;
+    
     let json = fs::read_to_string(backup_file)?;
     let backup: RegistryBackup = serde_json::from_str(&json)?;
     
     // Restore registry value
     crate::utils::registry::write_dword(
-        windows::Win32::System::Registry::HKEY_LOCAL_MACHINE,
+        HKEY_LOCAL_MACHINE,
         &backup.subkey,
         &backup.value,
         backup.data,
     )?;
     
     Ok(())
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn rollback_from_file(_backup_file: &str) -> Result<()> {
+    Err(anyhow::anyhow!("Rollback only supported on Windows"))
 }
