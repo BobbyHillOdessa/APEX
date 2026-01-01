@@ -1,0 +1,38 @@
+[package]
+name = "apex"
+version = "11.0.0"
+edition = "2021"
+authors = ["APEX Team"]
+description = "Military-Grade Windows System Performance Auditor"
+license = "MIT"
+
+[dependencies]
+windows = { version = "0.58", features = [
+    "Win32_Foundation",
+    "Win32_System_Registry",
+    "Win32_System_Services",
+    "Win32_System_Power",
+    "Win32_System_SystemInformation",
+    "Win32_System_Threading",
+    "Win32_System_Performance",
+    "Win32_Devices_DeviceAndDriverInstallation",
+    "Win32_Storage_FileSystem",
+    "Win32_NetworkManagement_IpHelper",
+    "Win32_Security",
+]}
+nvml-wrapper = "0.10"
+sysinfo = "0.31"
+rayon = "1.10"
+clap = { version = "4", features = ["derive"] }
+colored = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+chrono = "0.4"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
